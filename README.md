@@ -35,7 +35,7 @@ TODO-EXPRESS/
 
 ### 1. Clone the Repository
 
-git clone https://github.com/your-username/todo-express.git
+git clone https://github.com/fanyunxiang/express-do-backend.git
 cd todo-express
 
 ---

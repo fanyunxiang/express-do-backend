@@ -1,5 +1,5 @@
 import { pool } from '../db/index.js';
-import { logger } from './logger.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * 包裹一段事务逻辑，自动处理连接、提交、回滚、释放

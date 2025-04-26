@@ -2,7 +2,7 @@ import { query } from '../db/index.js';
 import bcrypt from 'bcryptjs';
 import { nanoid } from 'nanoid';
 import jwt from 'jsonwebtoken';
-import { withTransaction } from '../utils/withTransaction.js';
+import { withTransaction } from '../middlewares/withTransaction.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default_secret_key';
 
