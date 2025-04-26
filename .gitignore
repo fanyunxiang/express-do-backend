@@ -1,0 +1,45 @@
+# Node modules
+node_modules/
+
+# dotenv file
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE/editor configs
+.vscode/
+.idea/
+
+# Dependency locks
+package-lock.json
+yarn.lock
+
+# pnpm
+pnpm-lock.yaml
+
+# Coverage results
+coverage/
+.nyc_output/
+
+# Build output 
+dist/
+build/
+
+# Optional npm cache directory
+.npm/
+
+# Debug output from Node
+*.tgz
+
+# TypeScript
+*.tsbuildinfo
