@@ -1,48 +1,64 @@
-import { pool } from '../db/index.js';
+import { query } from '../db/index.js';
 import bcrypt from 'bcryptjs';
 import { nanoid } from 'nanoid';
 import jwt from 'jsonwebtoken';
-
+import { withTransaction } from '../utils/withTransaction.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default_secret_key';
 
-exports.registerUser = async (req, res) => {
+/**
+ * getUserList
+ * @param {Object} req - Express
+ * @param {Object} res - Express
+ * @returns {Promise<void>}
+ */
+export const getUserList = async (req, res) => {
+  try {
+    const rows = await query('SELECT * FROM users');
+    res.success(rows, 'Successfully retrieved the user list.');
+  } catch (err) {
+    res.fail(err.message, 500);
+  }
+};
+
+/**
+ * registerUser
+ * @param {Object} req - Express
+ * @param {Object} res - Express
+ * @returns {Promise<void>}
+ */
+export const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
-    console.log('注册请求:', req.body);
-    
   if (!name || !email || !password) {
-    return res.status(400).json({ error: '字段不能为空' });
+    return res.fail('字段不能为空', 400);
   }
 
   try {
-    const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
-    if (existing.length > 0) {
-      return res.status(409).json({ error: '邮箱已被注册' });
-    }
+    const result = await withTransaction(async (conn) => {
+      const [existing] = await conn.query('SELECT id FROM users WHERE email = ?', [email]);
+      if (existing.length > 0) {
+        throw new Error('该邮箱已被注册');
+      }
 
-    const id = nanoid();
-    console.log('生成的用户 ID:', id);
-    const hashedPassword = await bcrypt.hash(password, 10);
+      const id = nanoid();
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await conn.query(
+        'INSERT INTO users (id, name, email, password) VALUES (?, ?, ?, ?)',
+        [id, name, email, hashedPassword]
+      );
 
-    await pool.query(
-      'INSERT INTO users (id, name, email, password) VALUES (?, ?, ?, ?)',
-      [id, name, email, hashedPassword]
-    );
+      await conn.query(
+        'INSERT INTO user_logs (user_id, action) VALUES (?, ?)',
+        [id, 'register']
+      );
 
-    // 创建 JWT token
-    const token = jwt.sign(
-      { id, name, email },             // payload
-      JWT_SECRET,                      // 密钥
-      { expiresIn: '7d' }              // token 有效期
-    );
+      const token = jwt.sign({ id, name, email }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    res.status(201).json({
-      message: '注册成功',
-      user: { id, name, email },
-      token
+      return { id, name, email, token };
     });
+
+    res.success({ user: result, token: result.token }, '注册成功');
   } catch (err) {
-    console.error('注册错误:', err);
-    res.status(500).json({ error: '服务器错误' });
+    res.fail(err.message || '注册失败', 500);
   }
 };

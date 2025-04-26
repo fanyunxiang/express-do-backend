@@ -8,7 +8,7 @@ const verifyToken = (req, res, next) => {
   if (['/register', '/login'].some(path => req.path.includes(path))) {
     return next(); // 不验证注册/登录接口
   }
-  
+
   if (!token) {
     return res.status(401).json({ error: '未提供 token' });
   }
@@ -22,4 +22,4 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-module.exports = verifyToken;
+export default verifyToken;
